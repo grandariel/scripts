@@ -2,8 +2,8 @@
 
 import httplib2
 import os
-import datetime
 
+from datetime import datetime 
 from apiclient import discovery
 from google.oauth2 import service_account
 
@@ -21,7 +21,7 @@ try:
 
 
     values = [
-        ['a1', 'b1', 'c1', datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")]
+        ['a1', 'b1', 'c1', datetime.now().strftime("%d/%m/%Y %H:%M:%S")]
     ]
 
     data = {
