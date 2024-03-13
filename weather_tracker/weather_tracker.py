@@ -4,28 +4,28 @@ import httplib2
 import os
 import time
 
-from datetime import datetime 
-from apiclient import discovery
-from google.oauth2 import service_account
+from datetime import datetime
+from gpiozero import CPUTemperature
 
-try:
-    start = time.time()
-    print("Saving weather...")
+from weather_tracker_auth import sheet
+from weather_tracker_auth import sheet_id
 
-    SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
-    secret_file = os.path.expanduser('~') + "/scripts/weather_tracker/.client_secret.json"
+def main():
+    try:        
+        insertRow()
+        pasteData(getWeather())
+        print("Saved successfully.")
+    except OSError as e:
+        print(e)
 
-    range_name = 'Sheet1!A1'
-    sheet_id = '1dUFAWY5aM3p3AqM9FQwctufudNxj2466q9aTShLYfxA'
-
-    credentials = service_account.Credentials.from_service_account_file(secret_file, scopes=SCOPES)
-    service = discovery.build('sheets', 'v4', credentials=credentials)
-
-    values = ['a1', 'b1', 'c1', datetime.now().strftime('%d/%m/%Y %H:%M:%S')]
+def getWeather():
+    temp = str(CPUTemperature().temperature)
+    date = datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+    values = [temp, 'b1', 'c1', date]
     print(values)
+    return ','.join(values)
 
-    sheet = service.spreadsheets()
-    
+def insertRow():
     body = {
         'requests': {
             'insertDimension': {
@@ -40,7 +40,8 @@ try:
         }
     }
     sheet.batchUpdate(spreadsheetId=sheet_id,body=body).execute()
-    
+
+def pasteData(data):
     body = {
         'requests': { 
             'pasteData': {
@@ -49,16 +50,18 @@ try:
                     "rowIndex": 1,
                     "columnIndex": 0
                 },
-                "data": ','.join(values),
+                "data": data,
                 "delimiter": ','
             }
         }
     }
     sheet.batchUpdate(spreadsheetId=sheet_id,body=body).execute()
 
-    print("Saved successfully.")
-
+if __name__ == "__main__":
+    print("Saving weather...")
+    start = time.time()
+    
+    main()
+    
     end = time.time()
     print("Script took " + str(round(end - start, 2)) + "s")
-except OSError as e:
-    print(e)
