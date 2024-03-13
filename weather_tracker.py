@@ -11,7 +11,7 @@ try:
     print("Saving weather...")
 
     SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
-    secret_file = os.path.expanduser('~') + "/scripts/client_secret.json"
+    secret_file = os.path.expanduser('~') + "/scripts/.client_secret.json"
 
     range_name = 'Sheet1!A1'
     sheet_id = '1dUFAWY5aM3p3AqM9FQwctufudNxj2466q9aTShLYfxA'
