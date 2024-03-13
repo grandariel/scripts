@@ -2,12 +2,14 @@
 
 import httplib2
 import os
+import time
 
 from datetime import datetime 
 from apiclient import discovery
 from google.oauth2 import service_account
 
 try:
+    start = time.time()
     print("Saving weather...")
 
     SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
@@ -19,18 +21,44 @@ try:
     credentials = service_account.Credentials.from_service_account_file(secret_file, scopes=SCOPES)
     service = discovery.build('sheets', 'v4', credentials=credentials)
 
+    values = ['a1', 'b1', 'c1', datetime.now().strftime('%d/%m/%Y %H:%M:%S')]
+    print(values)
 
-    values = [
-        ['a1', 'b1', 'c1', datetime.now().strftime("%d/%m/%Y %H:%M:%S")]
-    ]
-
-    data = {
-        'values': values
+    sheet = service.spreadsheets()
+    
+    body = {
+        'requests': {
+            'insertDimension': {
+                "range": {
+                "sheetId": 0,
+                "dimension": "ROWS",
+                "startIndex": 1,
+                "endIndex": 2 
+                },
+                "inheritFromBefore": False
+            },
+        }
     }
+    sheet.batchUpdate(spreadsheetId=sheet_id,body=body).execute()
+    
+    body = {
+        'requests': { 
+            'pasteData': {
+                "coordinate": {
+                    "sheetId": 0,
+                    "rowIndex": 1,
+                    "columnIndex": 0
+                },
+                "data": ','.join(values),
+                "delimiter": ','
+            }
+        }
+    }
+    sheet.batchUpdate(spreadsheetId=sheet_id,body=body).execute()
 
-    sheet = service.spreadsheets().values()
-    sheet.append(spreadsheetId=sheet_id, body=data, range=range_name, valueInputOption='USER_ENTERED').execute()
+    print("Saved successfully.")
 
-    print("Saved.")
+    end = time.time()
+    print("Script took " + str(round(end - start, 2)) + "s")
 except OSError as e:
     print(e)
